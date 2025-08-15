@@ -24,13 +24,13 @@ location:
 # Historical Data Settings
 historical:
   # Number of days to look back for historical data
-  days_back: 14
+  days_back: 1
   
   # Include hourly data in historical requests
   include_hourly: true
 
   # Maximum number of days allowed (API limit consideration)
-  max_days: 180
+  max_days: 90
   
   # Default date range for specific queries
   date_ranges:
@@ -55,6 +55,21 @@ data_options:
   
   # Temperature units (us, metric, uk)
   units: "metric"
+
+# export weather data 
+export_weather:
+
+  # enable true = save to file 
+  enabled : true
+
+  # filename 
+  filename : "historical"
+  
+  # format excel, csv, parquet 
+  format : "csv"
+
+  # default directory 
+  directory : "data"
 
 # Output Settings
 output:
@@ -126,3 +141,5 @@ cache:
   enabled: true
   ttl_minutes: 60  # Cache time-to-live in minutes
   max_size: 100    # Maximum number of cached responses
+
+
