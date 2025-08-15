@@ -1,0 +1,128 @@
+# Weather API Configuration File
+# This file controls the input parameters for the Visual Crossing Weather API client
+
+# API Configuration
+api:
+  # Your API key will still be loaded from .env file for security
+  base_url: "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline"
+  timeout: 30  # Request timeout in seconds
+  max_retries: 3
+
+# Default Location Settings
+location:
+  # Primary location for weather queries
+  primary: "Amsterdam, NL"
+  
+  # Alternative locations for batch processing
+  alternatives:
+    - "London, UK"
+    # - "Tokyo, Japan"
+    # - "Sydney, Australia"
+    # - "Paris, France"
+    # - "Berlin, Germany"
+
+# Historical Data Settings
+historical:
+  # Number of days to look back for historical data
+  days_back: 14
+  
+  # Include hourly data in historical requests
+  include_hourly: true
+
+  # Maximum number of days allowed (API limit consideration)
+  max_days: 180
+  
+  # Default date range for specific queries
+  date_ranges:
+    week: 7
+    month: 30
+    quarter: 90
+    year: 365
+
+# Data Retrieval Settings
+data_options:
+  # Include current conditions in requests
+  include_current: true
+  
+  # Include forecast data
+  include_forecast: true
+  
+  # Include hourly data
+  include_hourly: true
+  
+  # Data format preferences
+  output_format: "json"  # json, csv, dataframe
+  
+  # Temperature units (us, metric, uk)
+  units: "metric"
+
+# Output Settings
+output:
+  # Save data to files
+  save_to_file: True
+  
+  # Output directory for saved files
+  output_directory: "./weather_data"
+  
+  # File naming pattern
+  file_pattern: "{location}_{date}_{type}.{format}"
+  
+  # Pretty print JSON output
+  pretty_print: true
+  
+  # Include metadata in output
+  include_metadata: true
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  log_to_file: false
+  log_file: "weather_api.log"
+
+# Batch Processing Settings
+batch:
+  # Enable batch processing for multiple locations
+  enabled: false
+  
+  # Delay between requests (seconds) to respect rate limits
+  request_delay: 1
+  
+  # Process locations in parallel
+  parallel_processing: false
+  
+  # Maximum concurrent requests
+  max_workers: 3
+
+# Data Processing Settings
+processing:
+  # Automatically convert to pandas DataFrame
+  auto_dataframe: true
+  
+  # Remove null values
+  clean_data: true
+  
+  # Round numerical values to decimal places
+  round_decimals: 2
+  
+  # Include only specific fields (empty list means include all)
+  include_fields: []
+  # Example fields you might want to include:
+  # - datetime
+  # - temp
+  # - tempmax
+  # - tempmin
+  # - humidity
+  # - conditions
+  # - windspeed
+
+# Notification Settings (optional)
+notifications:
+  enabled: false
+  email: "your-email@example.com"
+  webhook_url: ""
+
+# Cache Settings
+cache:
+  enabled: true
+  ttl_minutes: 60  # Cache time-to-live in minutes
+  max_size: 100    # Maximum number of cached responses
