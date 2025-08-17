@@ -442,6 +442,9 @@ def example_with_config():
                     fileformat = weather.config.get('export_weather.format', False) 
                     filename = os.path.join(data_dir, weather.config.get('export_weather.filename', False) + "." +fileformat)
                     
+                    if not os.path.exists(data_dir):
+                        os.makedirs(data_dir)
+                    
                     if fileformat == "csv":
                         hourly_df.to_csv(filename,index=False)
                     if filename == "xlsx":

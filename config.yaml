@@ -24,7 +24,7 @@ location:
 # Historical Data Settings
 historical:
   # Number of days to look back for historical data
-  days_back: 1
+  days_back: 5
   
   # Include hourly data in historical requests
   include_hourly: true
