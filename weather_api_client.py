@@ -33,7 +33,6 @@ class WeatherConfig:
             
             with open(self.config_file, 'r', encoding='utf-8') as file:
                 config = yaml.safe_load(file)
-                print("yaml config : ",config)
                 return config if config else self._get_default_config()
         except Exception as e:
             print(f"Error loading config file: {e}. Using defaults.")
@@ -409,7 +408,7 @@ def example_with_config():
     
     # Initialize with config file
     weather = VisualCrossingWeatherAPI()
-    
+     
     # Get current weather for primary location from config
     print(f"\n1. Current weather for primary location: {weather.get_primary_location()}")
     current_data = weather.get_current_weather()
@@ -434,6 +433,26 @@ def example_with_config():
             if not hourly_df.empty:
                 print(f"\nHourly data retrieved: {len(hourly_df)} hourly records")
                 print(hourly_df[['date', 'datetime', 'temp', 'humidity', 'conditions']].head(10))
+                                
+                 # save to file 
+                if weather.config.get('export_weather.enabled', False) :
+                    
+                    project_dir =  os.path.dirname(os.path.realpath(__file__))
+                    data_dir = os.path.join(project_dir, weather.config.get('export_weather.directory', False))
+                    fileformat = weather.config.get('export_weather.format', False) 
+                    filename = os.path.join(data_dir, weather.config.get('export_weather.filename', False) + "." +fileformat)
+                    
+                    if not os.path.exists(data_dir):
+                        os.makedirs(data_dir)
+                    
+                    if fileformat == "csv":
+                        hourly_df.to_csv(filename,index=False)
+                    if filename == "xlsx":
+                        hourly_df.to_excel(filename,index=False)
+                    else : 
+                        print("other format not yet supported")
+                    
+                    print('filename : ',filename)
                 
                 # Get hourly summary
                 summary = weather.get_hourly_summary(hourly_df)
@@ -442,6 +461,12 @@ def example_with_config():
                 print(f"- Temperature range: {summary.get('temperature', {}).get('min', 'N/A')}° - {summary.get('temperature', {}).get('max', 'N/A')}°")
                 print(f"- Average temperature: {summary.get('temperature', {}).get('avg', 'N/A')}°")
                 print(f"- Most common condition: {summary.get('most_common_condition', 'N/A')}")
+                
+
+            
+                    # check location 
+                    # if  not os.path.exists(directory):
+                    #     os.makedirs(directory)
     
     # Process alternative locations from config
     print("\n3. Weather for alternative locations:")
