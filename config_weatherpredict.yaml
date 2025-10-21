@@ -1,0 +1,4 @@
+ml:
+  train_size : 0.9
+  predict_horizon_hour : 3 # hours
+  filename_export : "weather_prediction.csv"

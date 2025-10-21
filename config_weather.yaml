@@ -1,0 +1,68 @@
+# Weather API Configuration File
+# This file controls the input parameters for the Visual Crossing Weather API client
+
+# API Configuration
+api:
+  # Your API key will still be loaded from .env file for security
+  base_url: "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline"
+  timeout: 30  # Request timeout in seconds
+  max_retries: 3
+
+# Default Location Settings
+location:
+  # Primary location for weather queries
+  primary: "Amsterdam, NL"
+
+  # Alternative locations for batch processing
+  alternatives:
+    - "London, UK"
+    # - "Tokyo, Japan"
+    # - "Sydney, Australia"
+    # - "Paris, France"
+    # - "Berlin, Germany"
+
+# Historical Data Settings
+historical:
+  # Number of days to look back for historical data
+  days_back: 14
+  
+  # Include hourly data in historical requests
+  include_hourly: true
+
+  # Maximum number of days allowed (API limit consideration)
+  max_days: 30
+
+# Data Retrieval Settings
+data_options:
+  # Include current conditions in requests
+  include_current: true
+  
+  # Include forecast data
+  include_forecast: true
+  
+  # Include hourly data
+  include_hourly: true
+  
+  # Data format preferences
+  output_format: "json"  # json, csv, dataframe
+  
+  # Temperature units (us, metric, uk)
+  units: "metric"
+
+# export weather data 
+export_weather:
+
+  # enable true = save to file 
+  enabled : true
+
+  # filename 
+  filename_daily : "historical_daily"
+
+
+  filename_hourly : "historical_hourly"
+  
+  # format excel, csv, parquet 
+  format : "csv"
+
+  # default directory 
+  directory : "data"
