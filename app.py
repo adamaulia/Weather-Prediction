@@ -10,6 +10,22 @@ def home():
 
 @app.route('/predict_weather')
 def predict_weather():
+    """
+        Flask route to trigger the weather forecasting pipeline.
+
+        Actions:
+        - Instantiates the `WeatherForecast` class.
+        - Executes the full pipeline via `wf.main()`, which includes:
+            - Data preprocessing
+            - Train-test split
+            - Model training and validation
+            - Evaluation
+            - Future forecasting
+            - Visualization and export
+
+        Returns:
+        - None. This route runs the pipeline and saves outputs (e.g., CSV and plot) to disk.
+    """
     wf = WeatherForecast()
     wf.main()
     
@@ -17,6 +33,16 @@ def predict_weather():
 
 @app.route('/weather_get_data')
 def weather_get_data():
+    """
+        Retrieves and processes weather data using the configured pipeline.
+
+        Actions:
+        - Executes the `run_with_config()` function, which handles data acquisition and any necessary preprocessing.
+        - Returns a confirmation message upon successful completion.
+
+        Returns:
+        - str: A message indicating that weather data retrieval has finished.
+    """
     run_with_config()
     return 'Weather data retrieval completed!'
 
