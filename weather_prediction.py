@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Use non-GUI backend
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime, timedelta
@@ -37,8 +39,21 @@ class WeatherForecast():
     """
     
     def __init__(self, config_file: str = "config_weather.yaml", config_predict : str = "config_weatherpredict.yaml"):
-        """ 
-            Initialize the WeatherForecast class with configuration files.
+        """
+            Initializes the WeatherForecast class by loading configuration files and setting up paths and logging.
+
+            Parameters:
+            - config_file (str): Path to the YAML configuration file containing weather data export settings.
+                                Defaults to 'config_weather.yaml'.
+            - config_predict (str): Path to the YAML configuration file containing machine learning prediction settings.
+                                    Defaults to 'config_weatherpredict.yaml'.
+
+            Actions:
+            - Sets up a logger for tracking execution and debugging.
+            - Logs the start time of the weather prediction process.
+            - Loads configuration values using YamlHelper for both data and ML settings.
+            - Determines the project directory and constructs paths for data storage and raw hourly weather data.
+            - Logs the resolved paths for transparency and debugging.
         """
         
         self.logger = logging.getLogger(__name__)
@@ -60,8 +75,21 @@ class WeatherForecast():
          
     
     def preprocessing(self):
-        """ 
-            Preprocess the raw hourly weather data for modeling.
+        """
+            Loads and preprocesses raw hourly weather data for downstream modeling.
+
+            Actions:
+            - Reads the raw hourly weather data CSV file from the configured path.
+            - Logs the initial shape of the dataset.
+            - Filters out forecasted data (rows where 'source' == 'fcst').
+            - Selects relevant columns: 'datetime_full' and 'temp'.
+            - Converts temperature values to integers.
+            - Parses 'datetime_full' into datetime objects and sets it as the index.
+            - Resamples the data to ensure an hourly frequency.
+            - Logs the shape of the preprocessed DataFrame.
+
+            Result:
+            - Stores the cleaned and resampled DataFrame in `self.df_pre` for use in modeling.
         """
         
         
@@ -80,8 +108,18 @@ class WeatherForecast():
         
     
     def split_train_and_test(self):
-        """ 
-            Split the preprocessed data into training and testing datasets
+        """
+            Splits the preprocessed hourly weather data into training and testing sets for model development.
+
+            Actions:
+            - Retrieves the training size ratio from the ML configuration (default is 0.8 if not specified).
+            - Calculates the index at which to split the data based on the total number of rows.
+            - Assigns the first portion of the data to `self.data_train` and the remaining to `self.data_test`.
+            - Logs the shapes of both training and testing datasets for verification.
+
+            Result:
+            - `self.data_train`: DataFrame containing the training portion of the time series.
+            - `self.data_test`: DataFrame containing the testing portion of the time series.
         """
         
         train_size = self.ml_config.get_values('ml.train_size',0.8)
@@ -95,10 +133,20 @@ class WeatherForecast():
     
     def fit_model(self, data_train = None):
         """
-            Fit the SARIMAX model to the training dataset.
-            
-        Args:
-            data_train (_type_, optional): _description_. Defaults to None.
+            Fits a SARIMAX time series model to the training dataset.
+
+            Parameters:
+            - data_train (pd.DataFrame, optional): Custom training dataset to override the default `self.data_train`.
+                                                If None, the method uses `self.data_train` as the input.
+
+            Actions:
+            - Loads SARIMAX model parameters from the ML configuration file.
+            - Fits the SARIMAX model to the provided or default training data.
+            - Stores the fitted model in `self.model` for later prediction or evaluation.
+
+            Note:
+            - Assumes the training data is indexed by datetime and contains a single 'temp' column.
+            - Logs model fitting progress and any relevant diagnostics.
         """
 
         self.logger.info(f"fitting model")
@@ -113,12 +161,21 @@ class WeatherForecast():
     
     def predict_model(self, len_data_test = None):
         """
-            Evaluate the fitted model on the test dataset.
-        Args:
-        
-            len_data_test (_type_, optional): _description_. Defaults to None. hours of prediction.
-            
-        """ 
+            Generates predictions using the fitted SARIMAX model over a specified time horizon.
+
+            Parameters:
+            - len_data_test (int, optional): Number of future time steps (hours) to forecast.
+                                            If None, the method should default to the length of `self.data_test`.
+
+            Actions:
+            - Logs the prediction duration.
+            - Uses the SARIMAX model stored in `self.model` to forecast the specified number of steps.
+            - Stores the predictions in `self.predictions_skforecast`.
+            - Logs a preview of the predicted values.
+
+            Returns:
+            - pd.Series: Forecasted temperature values indexed by datetime.
+        """
         self.logger.info(f"predicting model for {len_data_test} hours")
         self.predictions_skforecast = self.model.predict(steps=len_data_test) # days prediction change config in yaml file 
         
@@ -135,8 +192,17 @@ class WeatherForecast():
         pass 
     
     def train_and_validate_model(self):
-        """ 
-            Train and validate the SARIMAX model using the training and testing datasets.
+        """
+            Trains the SARIMAX model on the training dataset and validates it by generating predictions on the test dataset.
+
+            Actions:
+            - Logs the start of the training and validation process.
+            - Calls `fit_model()` to train the SARIMAX model using `self.data_train`.
+            - Calls `predict_model()` to forecast values for the duration of `self.data_test`.
+            - Stores the predictions in `self.predictions_skforecast` for further evaluation or visualization.
+
+            Result:
+            - A trained SARIMAX model and its predictions over the test horizon.
         """
 
         self.logger.info(f"training and validating model")
@@ -146,8 +212,23 @@ class WeatherForecast():
         
 
     def forecast_future_horizon(self):
-        """ 
-            Forecast future weather conditions for a specified horizon.
+        """
+            Forecasts future weather conditions over a configurable time horizon and exports the results.
+
+            Actions:
+            - Logs the start of the forecasting process.
+            - Fits a SARIMAX model using the entire preprocessed dataset (`self.df_pre`).
+            - Forecasts future temperature values for a number of hours defined in the ML config (`ml.predict_horizon_hour`).
+            - Formats the forecast output:
+                - Renames the prediction column to 'temp'.
+                - Adds a 'label' column to distinguish forecasted data.
+                - Rounds and converts temperature values to integers.
+            - Combines historical and forecasted data into a single DataFrame (`self.df_post`).
+            - Exports the combined dataset to a CSV file at the configured path (`weather_prediction.csv`).
+            - Prints the last few rows of the combined DataFrame for quick inspection.
+
+            Result:
+            - A CSV file containing both historical and forecasted hourly temperature data, labeled accordingly.
         """
         self.logger.info(f"forecasting future horizon")
         
@@ -170,7 +251,17 @@ class WeatherForecast():
 
     def evaluate_model(self):
         """
-            Evaluate the performance of the SARIMAX model.
+        Evaluates the performance of the fitted SARIMAX model using standard regression metrics.
+
+        Actions:
+        - Logs the start of the evaluation process.
+        - Computes Mean Absolute Error (MAE), Mean Squared Error (MSE), and Root Mean Squared Error (RMSE)
+        between the actual test data (`self.data_test`) and the model's predictions (`self.predictions_skforecast`).
+        - Stores the results in `self.evaluation_results` as a dictionary.
+        - Logs the evaluation metrics for transparency and debugging.
+
+        Result:
+        - `self.evaluation_results`: Dictionary containing MAE, MSE, and RMSE values.
         """
         self.logger.info(f"evaluating model performance")
         
@@ -215,8 +306,20 @@ class WeatherForecast():
 
 
     def main(self):
-        """ 
-            Main entry point for the weather forecasting pipeline.
+        """
+            Executes the full weather forecasting pipeline from data preprocessing to visualization.
+
+            Workflow:
+            - Logs the start of the pipeline.
+            - Preprocesses raw hourly weather data (`self.preprocessing()`).
+            - Splits the cleaned data into training and testing sets (`self.split_train_and_test()`).
+            - Trains the SARIMAX model and validates it on the test set (`self.train_and_validate_model()`).
+            - Evaluates model performance using MAE, MSE, and RMSE (`self.evaluate_model()`).
+            - Forecasts future weather conditions for a configured horizon (`self.forecast_future_horizon()`).
+            - Generates and saves a time series plot comparing historical and forecasted data (`self.save_time_series_plot()`).
+
+            Result:
+            - A complete forecasting cycle with evaluation metrics and a visual output saved as 'time_series_prediction.png'.
         """
         
         self.logger.info(f"weather forecasting main pipeline started")
