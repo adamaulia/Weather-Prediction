@@ -1,6 +1,6 @@
 # 🌦️ Weather Prediction Pipeline
 
-A modular weather prediction system built with **Flask**, **Apache Airflow**, and **Docker**, designed to automate data ingestion, preprocessing, model inference, and result visualization. Ideal for learning and deploying end-to-end ML workflows.
+A modular weather prediction system built with **Flask**, and **Docker**, designed to automate data ingestion, preprocessing, model inference, and result visualization. Ideal for learning and deploying end-to-end ML workflows.
 
 ---
 
@@ -85,9 +85,7 @@ To retrieve your API key:
 
 Trigger a prediction via POST request:
 ```bash
-curl -X POST http://localhost:5000/predict \
-     -H "Content-Type: application/json" \
-     -d '{"location": "Tilburg", "date": "2025-10-24"}'
+curl -X POST http://127.0.0.1:5000/predict_weather 
 ```
 
 ---
